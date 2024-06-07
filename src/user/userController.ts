@@ -1,0 +1,137 @@
+import { Request, Response } from "express";
+import { IError, IUser } from "./interfaces";
+import parsePhoneNumber from "libphonenumber-js";
+import AuthorizeToken from "../common/middleware/authorize";
+import UserService from "./userService";
+const bcrypt = require("bcrypt");
+
+class UserController {
+  private userService = new UserService();
+  private auth = new AuthorizeToken();
+  private hashedPassword(password: string) {
+    const saltRounds: any = process.env.HASH_SYNC_PASSWORD;
+    const salt = bcrypt.genSaltSync(parseInt(saltRounds));
+    const resultHashedPassword = bcrypt.hashSync(password, salt);
+    return resultHashedPassword;
+  }
+  async verifyData(data: IUser, account_type: "individual" | "business") {
+    const { email, password, name, phone_number } = data;
+    const emailRegex =
+      /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
+    const valid_email = emailRegex.test(email);
+    const phoneNumber = parsePhoneNumber(phone_number || "");
+
+    if (!valid_email) {
+      throw new Error(
+        JSON.stringify({
+          email: false,
+          message: "Invalid email address",
+        })
+      );
+    }
+
+    if (await this.userService.findUserByEmail(email)) {
+      throw new Error(
+        JSON.stringify({
+          email: false,
+          message: "The email already exist",
+        })
+      );
+    }
+
+    if (!password || password.length < 6) {
+      throw new Error(
+        JSON.stringify({
+          password: false,
+          message: "Password must be at least 6 characters long",
+        })
+      );
+    }
+
+    if (!name || !name.trim().length) {
+      throw new Error(
+        JSON.stringify({
+          name: false,
+          message: "Name is required",
+        })
+      );
+    }
+
+    if (!phoneNumber?.isValid) {
+      throw new Error(
+        JSON.stringify({
+          phone_number: false,
+          message: "Invalid phone number",
+        })
+      );
+    }
+
+    if (await this.userService.findUserByPhoneNumber(phoneNumber?.number)) {
+      throw new Error(
+        JSON.stringify({
+          phone_number: false,
+          message: "The phone number already exist",
+        })
+      );
+    }
+
+    return {
+      name: name,
+      email: email,
+      phone_number: phoneNumber?.number,
+      password: this.hashedPassword(password),
+      country: phoneNumber?.country,
+      account_type: account_type,
+    };
+  }
+
+  async createUser(req: Request, res: Response) {
+    try {
+      const validData: any = await this.verifyData(
+        req.body,
+        (req as any).user.account_type
+      );
+      const user = await this.userService.createUser(validData);
+      return res.status(200).json(this.auth.generateUserToken(user));
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(500).json(JSON.parse(error.message));
+      }
+    }
+  }
+
+  async loginUser(req: Request, res: Response) {
+    const payload: IUser = req.body;
+    let result: any;
+    if (!(payload.email || payload.phone_number) || !payload.password) {
+      return res.status(400).json({
+        message: "Please provide both email/phone_number and password.",
+      });
+    }
+    if (payload.email)
+      result = await this.userService.findUserByEmail(payload.email);
+    if (payload.phone_number)
+      result = await this.userService.findUserByPhoneNumber(
+        payload.phone_number
+      );
+    if (!result)
+      return res.status(400).json({ message: "This account is not exist." });
+    const isMatchPassword = bcrypt.compareSync(
+      payload.password,
+      result.password
+    );
+    if (!isMatchPassword)
+      return res.status(400).json({ message: "This password is incorrect." });
+    if (isMatchPassword)
+      return res.status(200).json(this.auth.generateUserToken(result));
+  }
+
+  async getUserInfo(req: Request, res: Response) {
+    const userInfo = (req as any).user;
+    delete userInfo.password;
+    console.log(">> userInfo: ", userInfo);
+    res.status(200).json(userInfo);
+  }
+}
+
+export default UserController;
