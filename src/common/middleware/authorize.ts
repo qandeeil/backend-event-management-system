@@ -7,16 +7,12 @@ class AuthorizeToken {
     try {
       const authHeader = req.headers["authorization"];
       if (!authHeader) {
-        return res
-          .status(401)
-          .json({ message: "Unauthorized: No token provided", pass: false });
+        return res.status(401).json("Unauthorized: No token provided");
       }
 
       const token = authHeader.split(" ")[1];
       if (!token) {
-        return res
-          .status(401)
-          .json({ message: "Unauthorized: No token provided", pass: false });
+        return res.status(401).json("Unauthorized: No token provided");
       }
 
       const secretOrPublicKey = process.env.SECRET_KEY_TOKEN;
@@ -28,7 +24,10 @@ class AuthorizeToken {
         if (err) {
           return res
             .status(401)
-            .json({ message: "Unauthorized: Invalid token", pass: false });
+            .json({
+              authorization:
+                "You no longer have the permissions to complete this action",
+            });
         }
         (req as any).user = decoded;
         next();
@@ -51,7 +50,6 @@ class AuthorizeToken {
         req.query.account_type !== "business"
       ) {
         return res.status(400).json({
-          pass: false,
           message:
             "Invalid account type provided. It must be either 'individual' or 'business'.",
         });
@@ -86,7 +84,6 @@ class AuthorizeToken {
   generateUserToken = (user: IUser) => {
     const payload = {
       user,
-      pass: true,
     };
     const secretOrPrivateKey = process.env.SECRET_KEY_TOKEN;
     if (!secretOrPrivateKey) {
