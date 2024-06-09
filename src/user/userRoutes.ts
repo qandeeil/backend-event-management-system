@@ -19,6 +19,12 @@ router.get("/access-create-account", (req, res) =>
   authorizeToken.generateAccessCreateAccount(req, res)
 );
 
+router.get(
+  "/check-validation-token-account-type",
+  authorizeToken.authorize,
+  (req, res) => userController.checkValidationToken(req, res)
+);
+
 router.post("/login", (req, res) => userController.loginUser(req, res));
 
 router.get("/user-info", authorizeToken.authorize, (req, res) =>
