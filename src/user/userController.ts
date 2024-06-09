@@ -140,8 +140,10 @@ class UserController {
 
   async getUserInfo(req: Request, res: Response) {
     const userInfo = (req as any).user;
-    delete userInfo.password;
-    console.log(">> userInfo: ", userInfo);
+    delete userInfo.user.password;
+    delete userInfo.user.updatedAt;
+    delete userInfo.user.createdAt;
+    delete userInfo.user._id;
     res.status(200).json(userInfo);
   }
 
