@@ -5,6 +5,7 @@ import errorHandler from "./src/common/middleware/errorHandler";
 var cors = require("cors");
 var bodyParser = require("body-parser");
 const mongoose = require("mongoose");
+import morgan from "morgan";
 
 //For env File
 dotenv.config();
@@ -17,6 +18,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // parse application/json
 app.use(bodyParser.json());
+
+// show logs request
+app.use(morgan("dev"));
 
 // connection to database
 const username = process.env.MONGODB_USERNAME;
