@@ -7,6 +7,7 @@ export interface IUser extends Document {
   password: string;
   account_type: "individual" | "business";
   country: CountryCode;
+  identity: string; // login user email or phone number
 }
 
 export interface IError {
