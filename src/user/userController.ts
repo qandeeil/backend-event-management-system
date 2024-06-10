@@ -144,7 +144,11 @@ class UserController {
     delete userInfo.user.updatedAt;
     delete userInfo.user.createdAt;
     delete userInfo.user._id;
-    res.status(200).json(userInfo);
+    const payload = {
+      ...userInfo.user,
+      admin: userInfo.user.account_type === "business",
+    };
+    res.status(200).json(payload);
   }
 
   async checkValidationToken(req: Request, res: Response) {
