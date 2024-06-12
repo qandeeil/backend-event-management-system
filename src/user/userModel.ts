@@ -24,6 +24,7 @@ const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
       name: String,
       code: String,
     },
+    profile_image: { type: String },
   },
   { timestamps: true }
 );

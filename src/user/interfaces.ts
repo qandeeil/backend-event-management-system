@@ -8,6 +8,7 @@ export interface IUser extends Document {
   account_type: "individual" | "business";
   country: CountryCode;
   identity: string; // login user email or phone number
+  profile_image: string;
 }
 
 export interface IError {
