@@ -20,7 +20,10 @@ const userSchema: mongoose.Schema<IUser> = new mongoose.Schema(
       enum: ["individual", "business"],
       required: [true, "A account type is required."],
     },
-    country: { type: String, required: [true, "A country is required."] },
+    country: {
+      name: String,
+      code: String,
+    },
   },
   { timestamps: true }
 );
