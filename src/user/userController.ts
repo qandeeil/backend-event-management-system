@@ -5,6 +5,15 @@ import AuthorizeToken from "../common/middleware/authorize";
 import UserService from "./userService";
 const bcrypt = require("bcrypt");
 import ListOfCountries from "../../public/JSON/ListOfCountries.json";
+import fs from "fs";
+import path from "path";
+
+const publicDirectory = path.join(
+  __dirname,
+  "..",
+  "..",
+  "public/profile_image"
+);
 
 class UserController {
   private userService = new UserService();
@@ -90,6 +99,74 @@ class UserController {
     };
   }
 
+  async updateData(userInfo: IUser, data: IUser) {
+    const { email, name, phone_number, profile_image } = data;
+    const emailRegex =
+      /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
+    const valid_email = emailRegex.test(email);
+    const phoneNumber = parsePhoneNumber(phone_number || "");
+
+    const getCountry = ListOfCountries?.find(
+      (item) => item.code.toLowerCase() === phoneNumber?.country?.toLowerCase()
+    );
+
+    if (!name || !name.trim().length) {
+      throw new Error(
+        JSON.stringify({
+          name: false,
+          message: "Name is required",
+        })
+      );
+    }
+
+    if (!valid_email) {
+      throw new Error(
+        JSON.stringify({
+          email: false,
+          message: "Invalid email address",
+        })
+      );
+    }
+
+    if (email !== userInfo.email) {
+      if (await this.userService.findUserByEmail(email)) {
+        throw new Error(
+          JSON.stringify({
+            email: false,
+            message: "The email already exist",
+          })
+        );
+      }
+    }
+
+    if (!phoneNumber?.isValid()) {
+      throw new Error(
+        JSON.stringify({
+          phone_number: false,
+          message: "Invalid phone number",
+        })
+      );
+    }
+
+    if (phoneNumber?.number !== userInfo.phone_number) {
+      if (await this.userService.findUserByPhoneNumber(phoneNumber?.number)) {
+        throw new Error(
+          JSON.stringify({
+            phone_number: false,
+            message: "The phone number already exist",
+          })
+        );
+      }
+    }
+    return {
+      name: name,
+      email: email,
+      phone_number: phoneNumber?.number,
+      country: getCountry,
+      profile_image: profile_image,
+    };
+  }
+
   async createUser(req: Request, res: Response) {
     try {
       const validData: any = await this.verifyData(
@@ -151,6 +228,8 @@ class UserController {
     delete userInfo.user._id;
     const payload = {
       ...userInfo.user,
+      iat: userInfo.iat,
+      exp: userInfo.exp,
       admin: userInfo.user.account_type === "business",
     };
     res.status(200).json(payload);
@@ -162,6 +241,28 @@ class UserController {
       ...tokenInfo,
       pass: true,
     });
+  }
+
+  async updateAccountUser(req: Request, res: Response) {
+    try {
+      const userInfo = (req as any).user;
+      const validData: any = await this.updateData(userInfo.user, req.body);
+
+      if (req.file) {
+        const file = req.file as Express.Multer.File;
+        const fileName = file.originalname;
+        const filePath = path.join(publicDirectory, fileName);
+        fs.writeFileSync(filePath, file.buffer);
+        validData.profile_image = `/public/profile_image/${fileName}`;
+      }
+
+      await this.userService.updateAccount(userInfo.user._id, validData);
+      res.status(200).json({ updated: true });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        res.status(400).json(JSON.parse(error.message));
+      }
+    }
   }
 }
 
