@@ -22,12 +22,10 @@ class AuthorizeToken {
 
       jwt.verify(token, secretOrPublicKey, (err, decoded) => {
         if (err) {
-          return res
-            .status(401)
-            .json({
-              authorization:
-                "You no longer have the permissions to complete this action",
-            });
+          return res.status(401).json({
+            authorization:
+              "You no longer have the permissions to complete this action",
+          });
         }
         (req as any).user = decoded;
         next();
