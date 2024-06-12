@@ -31,4 +31,8 @@ router.get("/user-info", authorizeToken.authorize, (req, res) =>
   userController.getUserInfo(req, res)
 );
 
+router.post("/update-account", authorizeToken.authorize, (req, res) =>
+  userController.updateAccountUser(req, res)
+);
+
 export default router;

@@ -11,6 +11,9 @@ class UserService {
   findUserByPhoneNumber(phone_number: string) {
     return UserModel.findOne({ phone_number });
   }
+  updateAccount(_id: string, user: IUser) {
+    return UserModel.findByIdAndUpdate(_id, user);
+  }
 }
 
 export default UserService;
