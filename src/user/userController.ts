@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
-import { IError, IUser } from "./interfaces";
-import parsePhoneNumber, { findPhoneNumbersInText } from "libphonenumber-js";
+import { IUser } from "./interfaces";
+import parsePhoneNumber from "libphonenumber-js";
 import AuthorizeToken from "../common/middleware/authorize";
 import UserService from "./userService";
 const bcrypt = require("bcrypt");
+import ListOfCountries from "../../public/JSON/ListOfCountries.json";
 
 class UserController {
   private userService = new UserService();
@@ -20,6 +21,10 @@ class UserController {
       /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
     const valid_email = emailRegex.test(email);
     const phoneNumber = parsePhoneNumber(phone_number || "");
+
+    const getCountry = ListOfCountries?.find(
+      (item) => item.code.toLowerCase() === phoneNumber?.country?.toLowerCase()
+    );
 
     if (!name || !name.trim().length) {
       throw new Error(
@@ -80,7 +85,7 @@ class UserController {
       email: email,
       phone_number: phoneNumber?.number,
       password: this.hashedPassword(password),
-      country: phoneNumber?.country,
+      country: getCountry,
       account_type: account_type,
     };
   }
