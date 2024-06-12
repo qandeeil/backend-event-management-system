@@ -22,9 +22,7 @@ class AuthorizeToken {
                 }
                 jsonwebtoken_1.default.verify(token, secretOrPublicKey, (err, decoded) => {
                     if (err) {
-                        return res
-                            .status(401)
-                            .json({
+                        return res.status(401).json({
                             authorization: "You no longer have the permissions to complete this action",
                         });
                     }

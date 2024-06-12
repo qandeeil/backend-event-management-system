@@ -16,6 +16,10 @@ const libphonenumber_js_1 = __importDefault(require("libphonenumber-js"));
 const authorize_1 = __importDefault(require("../common/middleware/authorize"));
 const userService_1 = __importDefault(require("./userService"));
 const bcrypt = require("bcrypt");
+const ListOfCountries_json_1 = __importDefault(require("../../public/JSON/ListOfCountries.json"));
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
+const publicDirectory = path_1.default.join(__dirname, "..", "..", "public/profile_image");
 class UserController {
     constructor() {
         this.userService = new userService_1.default();
@@ -33,6 +37,7 @@ class UserController {
             const emailRegex = /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
             const valid_email = emailRegex.test(email);
             const phoneNumber = (0, libphonenumber_js_1.default)(phone_number || "");
+            const getCountry = ListOfCountries_json_1.default === null || ListOfCountries_json_1.default === void 0 ? void 0 : ListOfCountries_json_1.default.find((item) => { var _a; return item.code.toLowerCase() === ((_a = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.country) === null || _a === void 0 ? void 0 : _a.toLowerCase()); });
             if (!name || !name.trim().length) {
                 throw new Error(JSON.stringify({
                     name: false,
@@ -74,8 +79,58 @@ class UserController {
                 email: email,
                 phone_number: phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.number,
                 password: this.hashedPassword(password),
-                country: phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.country,
+                country: getCountry,
                 account_type: account_type,
+            };
+        });
+    }
+    updateData(userInfo, data) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { email, name, phone_number, profile_image } = data;
+            const emailRegex = /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
+            const valid_email = emailRegex.test(email);
+            const phoneNumber = (0, libphonenumber_js_1.default)(phone_number || "");
+            const getCountry = ListOfCountries_json_1.default === null || ListOfCountries_json_1.default === void 0 ? void 0 : ListOfCountries_json_1.default.find((item) => { var _a; return item.code.toLowerCase() === ((_a = phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.country) === null || _a === void 0 ? void 0 : _a.toLowerCase()); });
+            if (!name || !name.trim().length) {
+                throw new Error(JSON.stringify({
+                    name: false,
+                    message: "Name is required",
+                }));
+            }
+            if (!valid_email) {
+                throw new Error(JSON.stringify({
+                    email: false,
+                    message: "Invalid email address",
+                }));
+            }
+            if (email !== userInfo.email) {
+                if (yield this.userService.findUserByEmail(email)) {
+                    throw new Error(JSON.stringify({
+                        email: false,
+                        message: "The email already exist",
+                    }));
+                }
+            }
+            if (!(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.isValid())) {
+                throw new Error(JSON.stringify({
+                    phone_number: false,
+                    message: "Invalid phone number",
+                }));
+            }
+            if ((phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.number) !== userInfo.phone_number) {
+                if (yield this.userService.findUserByPhoneNumber(phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.number)) {
+                    throw new Error(JSON.stringify({
+                        phone_number: false,
+                        message: "The phone number already exist",
+                    }));
+                }
+            }
+            return {
+                name: name,
+                email: email,
+                phone_number: phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.number,
+                country: getCountry,
+                profile_image: profile_image,
             };
         });
     }
@@ -134,7 +189,7 @@ class UserController {
             delete userInfo.user.updatedAt;
             delete userInfo.user.createdAt;
             delete userInfo.user._id;
-            const payload = Object.assign(Object.assign({}, userInfo.user), { admin: userInfo.user.account_type === "business" });
+            const payload = Object.assign(Object.assign({}, userInfo.user), { iat: userInfo.iat, exp: userInfo.exp, admin: userInfo.user.account_type === "business" });
             res.status(200).json(payload);
         });
     }
@@ -142,6 +197,28 @@ class UserController {
         return __awaiter(this, void 0, void 0, function* () {
             const tokenInfo = req.user;
             res.status(200).json(Object.assign(Object.assign({}, tokenInfo), { pass: true }));
+        });
+    }
+    updateAccountUser(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const userInfo = req.user;
+                const validData = yield this.updateData(userInfo.user, req.body);
+                if (req.file) {
+                    const file = req.file;
+                    const fileName = file.originalname;
+                    const filePath = path_1.default.join(publicDirectory, fileName);
+                    fs_1.default.writeFileSync(filePath, file.buffer);
+                    validData.profile_image = `/public/profile_image/${fileName}`;
+                }
+                yield this.userService.updateAccount(userInfo.user._id, validData);
+                res.status(200).json({ updated: true });
+            }
+            catch (error) {
+                if (error instanceof Error) {
+                    res.status(400).json(JSON.parse(error.message));
+                }
+            }
         });
     }
 }

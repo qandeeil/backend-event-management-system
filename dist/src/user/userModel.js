@@ -22,7 +22,11 @@ const userSchema = new mongoose_1.default.Schema({
         enum: ["individual", "business"],
         required: [true, "A account type is required."],
     },
-    country: { type: String, required: [true, "A country is required."] },
+    country: {
+        name: String,
+        code: String,
+    },
+    profile_image: { type: String },
 }, { timestamps: true });
 const User = mongoose_1.default.model("User", userSchema);
 exports.default = User;
