@@ -130,15 +130,6 @@ class UserController {
             };
         });
     }
-    //   async getUserInfoObj(userInfo) {
-    //     const payload = {
-    //       ...userInfo.user,
-    //       iat: userInfo.iat,
-    //       exp: userInfo.exp,
-    //       admin: userInfo.user.account_type === "business",
-    //     };
-    //     return payload;
-    //   }
     createUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -244,8 +235,8 @@ class UserController {
                 res.status(200).json({ updated: true, user: payload });
             }
             catch (error) {
+                console.error(">> error.message: ", error);
                 if (error instanceof Error) {
-                    console.log(">> error.message: ", error.message);
                     res.status(400).json(JSON.parse(error.message));
                 }
             }

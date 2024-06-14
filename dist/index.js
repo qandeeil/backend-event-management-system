@@ -39,7 +39,7 @@ app.get("/", (req, res) => {
     res.send("Welcome to Event management system");
 });
 // get profile image
-app.use("/public/profile_image", express_1.default.static(path_1.default.join(__dirname, "public/profile_image")));
+app.use("/public/profile_image", express_1.default.static(path_1.default.join("public/profile_image")));
 app.use(errorHandler_1.default);
 app.use(cors());
 app.use("/user", userRoutes_1.default);
