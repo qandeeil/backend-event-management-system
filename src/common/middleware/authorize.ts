@@ -88,7 +88,7 @@ class AuthorizeToken {
       throw new Error("Secret key is not defined");
     }
     const token = jwt.sign(payload, secretOrPrivateKey, {
-      expiresIn: "5m",
+      expiresIn: "15m",
     });
     return token;
   };
