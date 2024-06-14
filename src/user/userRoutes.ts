@@ -7,7 +7,7 @@ const router = Router();
 
 const userController = new UserController();
 const authorizeToken = new AuthorizeToken();
-const uploadFile = new UploadFile();
+const uploadFile = new UploadFile("public/profile_image");
 
 router.post(
   "/new-user",
