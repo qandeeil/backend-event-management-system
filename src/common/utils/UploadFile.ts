@@ -3,7 +3,7 @@ const path = require("path");
 
 class UploadFile {
   private storage: multer.StorageEngine;
-  private dir = path.join(__dirname, "..", "..", "..", "public/profile_image");
+  private dir = path.join("public/profile_image");
 
   constructor() {
     console.log(">> dir: ", this.dir);

@@ -45,7 +45,7 @@ app.get("/", (req: Request, res: Response) => {
 // get profile image
 app.use(
   "/public/profile_image",
-  express.static(path.join(__dirname, "public/profile_image"))
+  express.static(path.join("public/profile_image"))
 );
 
 app.use(errorHandler);
