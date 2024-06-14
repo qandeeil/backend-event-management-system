@@ -25,9 +25,11 @@ app.use(morgan("dev"));
 // connection to database
 const username = process.env.MONGODB_USERNAME;
 const password = process.env.MONGODB_PASSWORD;
-mongoose.connect(
-  `mongodb+srv://${username}:${password}@cluster0.wqfwxbi.mongodb.net/event-management-system`
-);
+const MongoURI =
+  process.env.NODE_ENV === "development"
+    ? "mongodb://127.0.0.1:27017/event-management-system"
+    : `mongodb+srv://${username}:${password}@cluster0.wqfwxbi.mongodb.net/event-management-system`;
+mongoose.connect(MongoURI);
 const db = mongoose.connection;
 db.on("error", console.error.bind(console, "connection error:"));
 db.once("open", function () {
