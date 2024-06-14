@@ -1,11 +1,13 @@
 import { Router, Request, Response } from "express";
 import AuthorizeToken from "../common/middleware/authorize";
 import UserController from "./userController";
+import UploadFile from "../common/utils/UploadFile";
 
 const router = Router();
 
 const userController = new UserController();
 const authorizeToken = new AuthorizeToken();
+const uploadFile = new UploadFile();
 
 router.post(
   "/new-user",
@@ -31,8 +33,13 @@ router.get("/user-info", authorizeToken.authorize, (req, res) =>
   userController.getUserInfo(req, res)
 );
 
-router.post("/update-account", authorizeToken.authorize, (req, res) =>
-  userController.updateAccountUser(req, res)
+router.post(
+  "/update-account",
+  authorizeToken.authorize,
+  uploadFile.uploadImage().single("profile_image"),
+  (req, res) => {
+    userController.updateAccountUser(req, res);
+  }
 );
 
 export default router;
