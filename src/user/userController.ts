@@ -247,7 +247,6 @@ class UserController {
       if (req.file) {
         const file = req.file as Express.Multer.File;
         if (file.path) {
-          console.log(">> file.path: ", file.path);
           validData.profile_image = file.path;
         } else {
           throw new Error(
@@ -276,6 +275,7 @@ class UserController {
         iat: userInfo.iat,
         exp: userInfo.exp,
       };
+      console.log(">> response ", { updated: true, user: payload });
       res.status(200).json({ updated: true, user: payload });
     } catch (error: unknown) {
       console.error(">> error.message: ", error);
