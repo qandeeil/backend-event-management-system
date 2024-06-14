@@ -209,7 +209,6 @@ class UserController {
                 if (req.file) {
                     const file = req.file;
                     if (file.path) {
-                        console.log(">> file.path: ", file.path);
                         validData.profile_image = file.path;
                     }
                     else {
@@ -233,12 +232,13 @@ class UserController {
                     iat: userInfo.iat,
                     exp: userInfo.exp,
                 };
+                console.log(">> response ", { updated: true, user: payload });
                 res.status(200).json({ updated: true, user: payload });
             }
             catch (error) {
                 console.error(">> error.message: ", error);
                 if (error instanceof Error) {
-                    res.status(400).json(JSON.parse(error.message));
+                    res.status(400).json(error.message);
                 }
             }
         });
