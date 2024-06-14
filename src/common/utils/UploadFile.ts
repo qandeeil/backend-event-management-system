@@ -6,7 +6,7 @@ class UploadFile {
   private dir = path.join(
     process.env.NODE_ENV === "development"
       ? "public/profile_image"
-      : "/dist/public/profile_image"
+      : "dist/public/profile_image"
   );
 
   constructor() {
