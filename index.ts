@@ -6,6 +6,7 @@ var cors = require("cors");
 var bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 import morgan from "morgan";
+import path from "path";
 
 //For env File
 dotenv.config();
@@ -40,6 +41,12 @@ db.once("open", function () {
 app.get("/", (req: Request, res: Response) => {
   res.send("Welcome to Event management system");
 });
+
+// get profile image
+app.use(
+  "/public/profile_image",
+  express.static(path.join(__dirname, "public/profile_image"))
+);
 
 app.use(errorHandler);
 app.use(cors());
