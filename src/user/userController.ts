@@ -5,15 +5,6 @@ import AuthorizeToken from "../common/middleware/authorize";
 import UserService from "./userService";
 const bcrypt = require("bcrypt");
 import ListOfCountries from "../../public/JSON/ListOfCountries.json";
-import fs from "fs";
-import path from "path";
-
-const publicDirectory = path.join(
-  __dirname,
-  "..",
-  "..",
-  "public/profile_image"
-);
 
 class UserController {
   private userService = new UserService();

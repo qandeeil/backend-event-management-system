@@ -3,13 +3,10 @@ const path = require("path");
 
 class UploadFile {
   private storage: multer.StorageEngine;
-  private dir = path.join(
-    process.env.NODE_ENV === "development"
-      ? "public/profile_image"
-      : "dist/public/profile_image"
-  );
+  private dir = path.join(__dirname, "..", "..", "..", "public/profile_image");
 
   constructor() {
+    console.log(">> dir: ", this.dir);
     this.storage = multer.diskStorage({
       destination: (
         req: any,
