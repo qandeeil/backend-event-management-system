@@ -1,6 +1,7 @@
 import express, { Express, Request, Response, Application } from "express";
 import dotenv from "dotenv";
 import userRouter from "./src/user/userRoutes";
+import eventRouter from "./src/event/eventRoutes";
 import errorHandler from "./src/common/middleware/errorHandler";
 var cors = require("cors");
 var bodyParser = require("body-parser");
@@ -52,6 +53,7 @@ app.use(errorHandler);
 app.use(cors());
 
 app.use("/user", userRouter);
+app.use("/event", eventRouter);
 
 app.listen(port, () => {
   console.log(`Server is Fire at http://localhost:${port}`);
