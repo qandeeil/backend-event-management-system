@@ -82,7 +82,7 @@ class AuthorizeToken {
                 throw new Error("Secret key is not defined");
             }
             const token = jsonwebtoken_1.default.sign(payload, secretOrPrivateKey, {
-                expiresIn: "1m",
+                expiresIn: "15m",
             });
             return token;
         };

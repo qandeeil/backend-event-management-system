@@ -17,13 +17,10 @@ const authorize_1 = __importDefault(require("../common/middleware/authorize"));
 const userService_1 = __importDefault(require("./userService"));
 const bcrypt = require("bcrypt");
 const ListOfCountries_json_1 = __importDefault(require("../../public/JSON/ListOfCountries.json"));
-const path_1 = __importDefault(require("path"));
-const publicDirectory = path_1.default.join(__dirname, "..", "..", "public/profile_image");
 class UserController {
     constructor() {
         this.userService = new userService_1.default();
         this.auth = new authorize_1.default();
-        this.getURL = process.env.URL_BACKEND;
     }
     hashedPassword(password) {
         const saltRounds = process.env.HASH_SYNC_PASSWORD;
