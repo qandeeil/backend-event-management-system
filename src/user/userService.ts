@@ -12,7 +12,7 @@ class UserService {
     return UserModel.findOne({ phone_number });
   }
   updateAccount(_id: string, user: IUser) {
-    return UserModel.findByIdAndUpdate(_id, user);
+    return UserModel.findByIdAndUpdate(_id, user, { new: true });
   }
 }
 
