@@ -8,7 +8,6 @@ const path = require("path");
 class UploadFile {
     constructor() {
         this.dir = path.join("public/profile_image");
-        console.log(">> dir: ", this.dir);
         this.storage = multer_1.default.diskStorage({
             destination: (req, file, cb) => {
                 cb(null, this.dir);

@@ -6,7 +6,6 @@ class UploadFile {
   private dir = path.join("public/profile_image");
 
   constructor() {
-    console.log(">> dir: ", this.dir);
     this.storage = multer.diskStorage({
       destination: (
         req: any,

@@ -209,6 +209,7 @@ class UserController {
                 if (req.file) {
                     const file = req.file;
                     if (file.path) {
+                        console.log(">> file.path: ", file.path);
                         validData.profile_image = file.path;
                     }
                     else {

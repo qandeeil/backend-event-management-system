@@ -247,6 +247,7 @@ class UserController {
       if (req.file) {
         const file = req.file as Express.Multer.File;
         if (file.path) {
+          console.log(">> file.path: ", file.path);
           validData.profile_image = file.path;
         } else {
           throw new Error(
