@@ -174,11 +174,9 @@ class UserController {
 
   async loginUser(req: Request, res: Response) {
     const payload: IUser = req.body;
-    console.log(">> payload ", payload);
     let phoneNumber;
     if (/^\d+$/.test(payload.identity)) {
       phoneNumber = parsePhoneNumber(payload.identity || "", payload.country);
-      console.log(">> phoneNumber: ", phoneNumber?.number);
     }
     let result: any;
     if (!payload.identity || !payload.password) {
@@ -275,7 +273,6 @@ class UserController {
         iat: userInfo.iat,
         exp: userInfo.exp,
       };
-      console.log(">> response ", { updated: true, user: payload });
       res.status(200).json({ updated: true, user: payload });
     } catch (error: unknown) {
       console.error(">> error.message: ", error);
