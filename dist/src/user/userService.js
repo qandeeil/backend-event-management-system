@@ -15,7 +15,7 @@ class UserService {
         return userModel_1.default.findOne({ phone_number });
     }
     updateAccount(_id, user) {
-        return userModel_1.default.findByIdAndUpdate(_id, user);
+        return userModel_1.default.findByIdAndUpdate(_id, user, { new: true });
     }
 }
 exports.default = UserService;

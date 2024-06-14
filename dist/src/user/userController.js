@@ -17,13 +17,13 @@ const authorize_1 = __importDefault(require("../common/middleware/authorize"));
 const userService_1 = __importDefault(require("./userService"));
 const bcrypt = require("bcrypt");
 const ListOfCountries_json_1 = __importDefault(require("../../public/JSON/ListOfCountries.json"));
-const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const publicDirectory = path_1.default.join(__dirname, "..", "..", "public/profile_image");
 class UserController {
     constructor() {
         this.userService = new userService_1.default();
         this.auth = new authorize_1.default();
+        this.getURL = process.env.URL_BACKEND;
     }
     hashedPassword(password) {
         const saltRounds = process.env.HASH_SYNC_PASSWORD;
@@ -86,7 +86,7 @@ class UserController {
     }
     updateData(userInfo, data) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { email, name, phone_number, profile_image } = data;
+            const { email, name, phone_number } = data;
             const emailRegex = /^[-!#$%&'*+\/0-9=?A-Z^_a-z{|}~](\.?[-!#$%&'*+\/0-9=?A-Z^_a-z`{|}~])*@[a-zA-Z0-9](-*\.?[a-zA-Z0-9])*\.[a-zA-Z](-?[a-zA-Z0-9])+$/;
             const valid_email = emailRegex.test(email);
             const phoneNumber = (0, libphonenumber_js_1.default)(phone_number || "");
@@ -130,10 +130,18 @@ class UserController {
                 email: email,
                 phone_number: phoneNumber === null || phoneNumber === void 0 ? void 0 : phoneNumber.number,
                 country: getCountry,
-                profile_image: profile_image,
             };
         });
     }
+    //   async getUserInfoObj(userInfo) {
+    //     const payload = {
+    //       ...userInfo.user,
+    //       iat: userInfo.iat,
+    //       exp: userInfo.exp,
+    //       admin: userInfo.user.account_type === "business",
+    //     };
+    //     return payload;
+    //   }
     createUser(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
@@ -178,8 +186,10 @@ class UserController {
                 return res
                     .status(400)
                     .json({ password: false, message: "This password is incorrect." });
-            if (isMatchPassword)
-                return res.status(200).json(this.auth.generateUserToken(result));
+            if (isMatchPassword) {
+                const token = this.auth.generateUserToken(result);
+                return res.status(200).json(token);
+            }
         });
     }
     getUserInfo(req, res) {
@@ -189,6 +199,10 @@ class UserController {
             delete userInfo.user.updatedAt;
             delete userInfo.user.createdAt;
             delete userInfo.user._id;
+            if (userInfo.user.profile_image) {
+                userInfo.user.profile_image =
+                    process.env.URL_BACKEND + userInfo.user.profile_image;
+            }
             const payload = Object.assign(Object.assign({}, userInfo.user), { iat: userInfo.iat, exp: userInfo.exp, admin: userInfo.user.account_type === "business" });
             res.status(200).json(payload);
         });
@@ -206,16 +220,35 @@ class UserController {
                 const validData = yield this.updateData(userInfo.user, req.body);
                 if (req.file) {
                     const file = req.file;
-                    const fileName = file.originalname;
-                    const filePath = path_1.default.join(publicDirectory, fileName);
-                    fs_1.default.writeFileSync(filePath, file.buffer);
-                    validData.profile_image = `/public/profile_image/${fileName}`;
+                    if (file.path) {
+                        validData.profile_image = file.path;
+                    }
+                    else {
+                        throw new Error(JSON.stringify({
+                            upload_image: false,
+                            message: "File buffer is undefined",
+                        }));
+                    }
                 }
-                yield this.userService.updateAccount(userInfo.user._id, validData);
-                res.status(200).json({ updated: true });
+                const user = yield this.userService.updateAccount(userInfo.user._id, validData);
+                const payload = {
+                    _id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    phone_number: user.phone_number,
+                    profile_image: user.profile_image
+                        ? process.env.URL_BACKEND + user.profile_image
+                        : null,
+                    account_type: user.account_type,
+                    admin: user.account_type === "business",
+                    iat: userInfo.iat,
+                    exp: userInfo.exp,
+                };
+                res.status(200).json({ updated: true, user: payload });
             }
             catch (error) {
                 if (error instanceof Error) {
+                    console.log(">> error.message: ", error.message);
                     res.status(400).json(JSON.parse(error.message));
                 }
             }
