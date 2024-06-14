@@ -280,7 +280,7 @@ class UserController {
     } catch (error: unknown) {
       console.error(">> error.message: ", error);
       if (error instanceof Error) {
-        res.status(400).json(JSON.parse(error.message));
+        res.status(400).json(error.message);
       }
     }
   }
