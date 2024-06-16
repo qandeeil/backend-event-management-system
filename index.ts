@@ -49,6 +49,11 @@ app.use(
   express.static(path.join("public/profile_image"))
 );
 
+app.use(
+  "/public/event_images",
+  express.static(path.join("public/event_images"))
+);
+
 app.use(errorHandler);
 app.use(cors());
 
