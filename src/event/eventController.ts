@@ -1,15 +1,23 @@
 import { Request, Response } from "express";
 import EventService from "./eventService";
-import { IUser } from "../user/interfaces";
-import { ICreateEvent, IEvent } from "./interfaces";
+import { ICreateEvent } from "./interfaces";
 
 class EventController {
   private eventService = new EventService();
 
   async createEvent(req: Request, res: Response) {
     try {
-      const { title, description, date, location, seats, price, organizers } =
-        req.body;
+      const {
+        title,
+        description,
+        start_date,
+        end_date,
+        country,
+        city,
+        seats,
+        price,
+        organizers,
+      } = req.body;
 
       const userInfo = (req as any).user.user;
       if (userInfo.account_type !== "business") {
@@ -25,12 +33,15 @@ class EventController {
       const payload: ICreateEvent = {
         title,
         description,
-        date,
-        location,
+        date: {
+          start_date: new Date(start_date),
+          end_date: new Date(end_date),
+        },
+        location: { country, city },
         seats,
         price,
         creator: userInfo._id,
-        organizers,
+        organizers: organizers.split(","),
         preview_photo: null,
         cover_photo: null,
       };
@@ -63,12 +74,24 @@ class EventController {
         }
       }
 
-      console.log(">> payload: ", payload);
-
       await this.eventService.createEvent(payload);
       res.json({ created: true });
     } catch (error: unknown) {
       if (error instanceof Error) {
+        console.error(error);
+        res.status(400).json(error.message);
+      }
+    }
+  }
+
+  async getEvents(req: Request, res: Response) {
+    try {
+      const data = await this.eventService.getEvents(req.body.page);
+      console.log(">> page: ", req.body.page);
+      res.status(200).send(data);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error(error);
         res.status(400).json(error.message);
       }
     }
