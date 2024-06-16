@@ -281,6 +281,16 @@ class UserController {
       }
     }
   }
+
+  async getOrganizers(req: Request, res: Response) {
+    const organizers = await this.userService.getOrganizers();
+    const modifiedOrganizers = organizers.map((organizer) => ({
+      _id: organizer._id,
+      name: organizer.name,
+      profile_image: process.env.URL_BACKEND + organizer.profile_image,
+    }));
+    res.status(200).json(modifiedOrganizers);
+  }
 }
 
 export default UserController;

@@ -42,4 +42,8 @@ router.post(
   }
 );
 
+router.get("/get-organizers", authorizeToken.authorize, (req, res) =>
+  userController.getOrganizers(req, res)
+);
+
 export default router;

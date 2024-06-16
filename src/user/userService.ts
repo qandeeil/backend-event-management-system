@@ -14,6 +14,11 @@ class UserService {
   updateAccount(_id: string, user: IUser) {
     return UserModel.findByIdAndUpdate(_id, user, { new: true });
   }
+  getOrganizers() {
+    return UserModel.find({
+      account_type: "business",
+    }).select("_id name profile_image")
+  }
 }
 
 export default UserService;
