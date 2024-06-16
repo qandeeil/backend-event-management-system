@@ -18,4 +18,8 @@ router.post(
   (req: Request, res: Response) => eventController.createEvent(req, res)
 );
 
+router.post("/get-events", authorizeToken.authorize, (req, res) =>
+  eventController.getEvents(req, res)
+);
+
 export default router;
