@@ -287,7 +287,9 @@ class UserController {
     const modifiedOrganizers = organizers.map((organizer) => ({
       _id: organizer._id,
       name: organizer.name,
-      profile_image: process.env.URL_BACKEND + organizer.profile_image,
+      profile_image: organizer.profile_image
+        ? process.env.URL_BACKEND + organizer.profile_image
+        : "",
     }));
     res.status(200).json(modifiedOrganizers);
   }
