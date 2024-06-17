@@ -2,10 +2,12 @@ import { Request, Response } from "express";
 import EventService from "./eventService";
 import { ICreateEvent } from "./interfaces";
 import RatingService from "../rating/ratingService";
+import FavoritesService from "../favorites/favoritesService";
 
 class EventController {
   private eventService = new EventService();
   private ratingService = new RatingService();
+  private favoritesService = new FavoritesService();
 
   async createEvent(req: Request, res: Response) {
     try {
@@ -88,9 +90,15 @@ class EventController {
 
   async getEvents(req: Request, res: Response) {
     try {
+      const userInfo = (req as any).user.user;
       const dataEvents = await this.eventService.getEvents(req.body.page);
-      const event_ids = dataEvents.map((item) => item._id);
+      const event_ids: any = dataEvents.map((item) => item._id);
       const ratings = await this.ratingService.getRatingEvents(event_ids);
+
+      const checkFavorites = await this.favoritesService.findToFavoriteEvents({
+        event_id: event_ids,
+        user_id: userInfo._id,
+      });
 
       // Create a map to store sum and count of ratings by event_id
       const ratingsSummaryByEventId: {
@@ -105,7 +113,12 @@ class EventController {
         ratingsSummaryByEventId[eventId].count += 1;
       });
 
-      // Calculate average rating for each event
+      // Create a map to check if an event is in user's favorites
+      const favoriteEventIds = new Set(
+        checkFavorites.map((fav) => fav.event_id.toString())
+      );
+
+      // Calculate average rating for each event and check if it's favorited
       const eventsWithRatings = dataEvents.map((event) => {
         const eventId = event._id.toString();
         const ratingSummary = ratingsSummaryByEventId[eventId] || {
@@ -115,9 +128,12 @@ class EventController {
         const averageRating = ratingSummary.count
           ? ratingSummary.sum / ratingSummary.count
           : 0;
+        const isFavorite = favoriteEventIds.has(eventId);
+
         return {
           ...event.toObject(), // Convert Mongoose document to plain JavaScript object
           rating: averageRating,
+          isFavorite: isFavorite,
         };
       });
 
