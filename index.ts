@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import userRouter from "./src/user/userRoutes";
 import eventRouter from "./src/event/eventRoutes";
 import ratingRouter from "./src/rating/ratingRoutes";
+import favoritesRouter from "./src/favorites/favoritesRoutes";
 import errorHandler from "./src/common/middleware/errorHandler";
 var cors = require("cors");
 var bodyParser = require("body-parser");
@@ -61,6 +62,7 @@ app.use(cors());
 app.use("/user", userRouter);
 app.use("/event", eventRouter);
 app.use("/rating", ratingRouter);
+app.use("/favorites", favoritesRouter);
 
 app.listen(port, () => {
   console.log(`Server is Fire at http://localhost:${port}`);
