@@ -87,7 +87,6 @@ class EventController {
   async getEvents(req: Request, res: Response) {
     try {
       const data = await this.eventService.getEvents(req.body.page);
-      console.log(">> page: ", req.body.page);
       res.status(200).send(data);
     } catch (error: unknown) {
       if (error instanceof Error) {
