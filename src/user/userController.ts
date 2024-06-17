@@ -212,6 +212,7 @@ class UserController {
 
   async getUserInfo(req: Request, res: Response) {
     const userInfo = (req as any).user;
+    const token: string | undefined = req.headers["authorization"];
     delete userInfo.user.password;
     delete userInfo.user.updatedAt;
     delete userInfo.user.createdAt;
@@ -225,6 +226,7 @@ class UserController {
       iat: userInfo.iat,
       exp: userInfo.exp,
       admin: userInfo.user.account_type === "business",
+      token: token ? token.split(" ")[1] : null,
     };
     res.status(200).json(payload);
   }
