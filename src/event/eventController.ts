@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import EventService from "./eventService";
 import { ICreateEvent } from "./interfaces";
+import RatingService from "../rating/ratingService";
 
 class EventController {
   private eventService = new EventService();
+  private ratingService = new RatingService();
 
   async createEvent(req: Request, res: Response) {
     try {
@@ -86,8 +88,40 @@ class EventController {
 
   async getEvents(req: Request, res: Response) {
     try {
-      const data = await this.eventService.getEvents(req.body.page);
-      res.status(200).send(data);
+      const dataEvents = await this.eventService.getEvents(req.body.page);
+      const event_ids = dataEvents.map((item) => item._id);
+      const ratings = await this.ratingService.getRatingEvents(event_ids);
+
+      // Create a map to store sum and count of ratings by event_id
+      const ratingsSummaryByEventId: {
+        [key: string]: { sum: any; count: number };
+      } = {};
+      ratings.forEach((rating) => {
+        const eventId = rating.event_id.toString();
+        if (!ratingsSummaryByEventId[eventId]) {
+          ratingsSummaryByEventId[eventId] = { sum: 0, count: 0 };
+        }
+        ratingsSummaryByEventId[eventId].sum += rating.rate;
+        ratingsSummaryByEventId[eventId].count += 1;
+      });
+
+      // Calculate average rating for each event
+      const eventsWithRatings = dataEvents.map((event) => {
+        const eventId = event._id.toString();
+        const ratingSummary = ratingsSummaryByEventId[eventId] || {
+          sum: 0,
+          count: 0,
+        };
+        const averageRating = ratingSummary.count
+          ? ratingSummary.sum / ratingSummary.count
+          : 0;
+        return {
+          ...event.toObject(), // Convert Mongoose document to plain JavaScript object
+          rating: averageRating,
+        };
+      });
+
+      res.status(200).send(eventsWithRatings);
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error(error);
