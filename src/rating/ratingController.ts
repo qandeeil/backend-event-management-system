@@ -18,7 +18,6 @@ class RatingController {
         event_id: req.body.event_id,
         rate: req.body.rate,
       };
-      console.log(payload);
       await this.ratingService.addRating(payload);
       res.status(201).json({ result: true, message: "successfully added" });
     } catch (error: unknown) {
