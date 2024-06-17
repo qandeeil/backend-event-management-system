@@ -11,7 +11,7 @@ class EventService {
     return Event.find()
       .skip(skip)
       .limit(perPage)
-      .select("date location title creator cover_photo price")
+      .select("date location title creator cover_photo price seats")
       .populate({
         path: "creator",
         select: "name profile_image",
