@@ -6,7 +6,7 @@ class EventService {
     return Event.create(event);
   }
   getEvents(page: number) {
-    const perPage = 5;
+    const perPage = 10;
     const skip = (page - 1) * perPage;
     return Event.find()
       .skip(skip)
