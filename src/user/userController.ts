@@ -243,6 +243,8 @@ class UserController {
 
   async updateAccountUser(req: Request, res: Response) {
     try {
+      const authHeader: any = req.headers["authorization"];
+      const token = authHeader.split(" ")[1];
       const userInfo = (req as any).user;
       const validData: any = await this.updateData(userInfo.user, req.body);
 
@@ -276,11 +278,12 @@ class UserController {
         admin: user.account_type === "business",
         iat: userInfo.iat,
         exp: userInfo.exp,
+        token: token,
       };
       res.status(200).json({ updated: true, user: payload });
     } catch (error: unknown) {
-      console.error(">> error.message: ", error);
       if (error instanceof Error) {
+        console.error(">> error.message: ", error.message);
         res.status(400).json(error.message);
       }
     }
