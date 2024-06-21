@@ -22,4 +22,8 @@ router.post("/get-events", authorizeToken.authorize, (req, res) =>
   eventController.getEvents(req, res)
 );
 
+router.get("/get-event/:_id", authorizeToken.authorize, (req, res) =>
+  eventController.getEventById(req, res)
+);
+
 export default router;
