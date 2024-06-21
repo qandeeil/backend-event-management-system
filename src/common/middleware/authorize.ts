@@ -80,6 +80,7 @@ class AuthorizeToken {
   };
 
   generateUserToken = (user: IUser) => {
+    const development = process.env.NODE_ENV === "development";
     const payload = {
       user,
     };
@@ -88,7 +89,7 @@ class AuthorizeToken {
       throw new Error("Secret key is not defined");
     }
     const token = jwt.sign(payload, secretOrPrivateKey, {
-      expiresIn: "15m",
+      expiresIn: development ? "15m" : "1w",
     });
     return token;
   };
