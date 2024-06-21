@@ -10,7 +10,7 @@ export function startScheduler() {
     return;
   }
 
-  task = cron.schedule("* * * * *", async () => {
+  task = cron.schedule("0 0 * * *", async () => {
     await eventService.checkExpiredEvents();
     console.log("Scheduler check expired events");
   });
