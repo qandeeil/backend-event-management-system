@@ -11,6 +11,21 @@ export interface IEvent extends Document {
   preview_photo: string;
   cover_photo: string;
   organizers: Types.ObjectId;
+  expired: boolean;
+}
+
+export interface IEventData {
+  title: string;
+  description: string;
+  date: IDate;
+  creator: Types.ObjectId;
+  location: Location;
+  seats: Number;
+  price: Number;
+  preview_photo: string;
+  cover_photo: string;
+  organizers: Types.ObjectId;
+  expired: boolean;
 }
 
 interface IDate {
@@ -34,4 +49,9 @@ export interface ICreateEvent {
   organizers: Types.ObjectId;
   preview_photo: string | null;
   cover_photo: string | null;
+}
+
+export interface IFilterEvent {
+  location: ILocation;
+  date: IDate;
 }
