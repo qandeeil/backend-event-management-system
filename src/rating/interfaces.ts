@@ -11,3 +11,8 @@ export interface IAddRating {
   user_id: Types.ObjectId;
   rate: Number;
 }
+
+export interface getRatingUser {
+  event_id: Types.ObjectId;
+  user_id: Types.ObjectId;
+}

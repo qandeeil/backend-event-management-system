@@ -18,8 +18,25 @@ class RatingController {
         event_id: req.body.event_id,
         rate: req.body.rate,
       };
-      await this.ratingService.addRating(payload);
-      res.status(201).json({ result: true, message: "successfully added" });
+
+      const checkAvalabelRate = await this.ratingService.getRatingUser({
+        event_id: req.body.event_id,
+        user_id: userInfo._id,
+      });
+
+      if (checkAvalabelRate) {
+        await this.ratingService.updateRating({
+          _id: checkAvalabelRate._id,
+          rate: req.body.rate,
+        });
+      } else {
+        await this.ratingService.addRating(payload);
+      }
+
+      res
+        .status(201)
+        .json({ result: true, message: "Evaluation completed successfully" });
+      return;
     } catch (error: unknown) {
       if (error instanceof Error) {
         res.status(400).json(error.message);

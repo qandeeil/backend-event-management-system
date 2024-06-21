@@ -28,7 +28,7 @@ class EventService {
     );
   }
   getEventbyId(_id: string) {
-    return Event.findById(_id).populate("organizers");
+    return Event.findById(_id).populate("organizers").populate("creator");
   }
 }
 

@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { IAddRating } from "./interfaces";
+import { getRatingUser, IAddRating } from "./interfaces";
 import ratingModel from "./ratingModel";
 
 class RatingService {
@@ -8,6 +8,12 @@ class RatingService {
   }
   getRatingEvents(event_id: Types.ObjectId[] | Types.ObjectId) {
     return ratingModel.find({ event_id });
+  }
+  getRatingUser(rating: getRatingUser) {
+    return ratingModel.findOne(rating).select("rate");
+  }
+  updateRating(rating: { _id: Types.ObjectId; rate: number }) {
+    return ratingModel.findByIdAndUpdate(rating._id, { rate: rating.rate });
   }
 }
 
