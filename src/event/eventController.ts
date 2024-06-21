@@ -88,10 +88,44 @@ class EventController {
     }
   }
 
+  cleanFilterData(filterData: any) {
+    const cleanedData: any = {};
+
+    if (filterData.data) {
+      if (filterData.data.start_date && filterData.data.start_date !== "") {
+        cleanedData["date.start_date"] = {
+          $lte: new Date(filterData.data.start_date),
+        };
+      }
+      if (filterData.data.end_date && filterData.data.end_date !== "") {
+        cleanedData["date.end_date"] = {
+          $gte: new Date(filterData.data.end_date),
+        };
+      }
+    }
+
+    if (filterData.location) {
+      if (filterData.location.country && filterData.location.country !== "") {
+        cleanedData["location.country"] = filterData.location.country;
+      }
+      if (filterData.location.city && filterData.location.city !== "") {
+        cleanedData["location.city"] = filterData.location.city;
+      }
+    }
+    cleanedData["expired"] = filterData.expired;
+    return cleanedData;
+  }
+
   async getEvents(req: Request, res: Response) {
     try {
       const userInfo = (req as any).user.user;
-      const dataEvents = await this.eventService.getEvents(req.body.page);
+      const cleanedFilterData = this.cleanFilterData(req.body.filter);
+      console.log(">> cleanedFilterData : ", cleanedFilterData);
+      const dataEvents = await this.eventService.getEvents(
+        req.body.page,
+        cleanedFilterData
+      );
+
       const event_ids: any = dataEvents.map((item) => item._id);
       const ratings = await this.ratingService.getRatingEvents(event_ids);
 
