@@ -68,6 +68,7 @@ const eventSchema: mongoose.Schema<IEvent> = new mongoose.Schema(
     preview_photo: { type: String },
     cover_photo: { type: String },
     organizers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    expired: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
