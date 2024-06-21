@@ -27,6 +27,9 @@ class EventService {
       { $set: { expired: true } }
     );
   }
+  getEventbyId(_id: string) {
+    return Event.findById(_id);
+  }
 }
 
 export default EventService;
