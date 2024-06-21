@@ -220,6 +220,8 @@ class UserController {
     if (userInfo.user.profile_image) {
       userInfo.user.profile_image =
         process.env.URL_BACKEND + userInfo.user.profile_image;
+    } else {
+      userInfo.user.profile_image = "";
     }
     const payload = {
       ...userInfo.user,
