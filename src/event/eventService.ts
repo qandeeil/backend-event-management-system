@@ -5,17 +5,27 @@ class EventService {
   createEvent(event: ICreateEvent) {
     return Event.create(event);
   }
-  getEvents(page: number) {
+  getEvents(page: number, filterData: any) {
     const perPage = 10;
     const skip = (page - 1) * perPage;
-    return Event.find()
-      .skip(skip)
-      .limit(perPage)
-      .select("date location title creator cover_photo price seats")
-      .populate({
-        path: "creator",
-        select: "name profile_image",
-      });
+    return (
+      Event.find(filterData)
+        // .skip(skip)
+        // .limit(perPage)
+        .select("date location title creator cover_photo price seats expired")
+        .populate({
+          path: "creator",
+          select: "name profile_image",
+        })
+    );
+  }
+  checkExpiredEvents() {
+    return Event.updateMany(
+      {
+        "date.end_date": { $lte: new Date() },
+      },
+      { $set: { expired: true } }
+    );
   }
 }
 
