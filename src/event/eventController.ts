@@ -138,6 +138,7 @@ class EventController {
       const ratingsSummaryByEventId: {
         [key: string]: { sum: any; count: number };
       } = {};
+
       ratings.forEach((rating) => {
         const eventId = rating.event_id.toString();
         if (!ratingsSummaryByEventId[eventId]) {
@@ -162,6 +163,7 @@ class EventController {
         const averageRating = ratingSummary.count
           ? ratingSummary.sum / ratingSummary.count
           : 0;
+
         const isFavorite = favoriteEventIds.has(eventId);
 
         return {
@@ -180,10 +182,42 @@ class EventController {
     }
   }
 
-  async getEventId(req: Request, res: Response): Promise<void> {
-    const getEvent = await this.eventService.getEventbyId(req.body._id);
-    res.status(200).json(getEvent);
-    return;
+  async getEventById(req: Request, res: Response): Promise<void> {
+    try {
+      const eventId: any = req.params._id;
+
+      // Get event details by id
+      const getEvent: any = await this.eventService.getEventbyId(eventId);
+
+      // Get ratings for the event
+      const ratings = await this.ratingService.getRatingEvents(eventId);
+
+      // Calculate ratings summary
+      let sum: any = 0;
+      let count: any = 0;
+      ratings.forEach((rating) => {
+        sum += rating.rate;
+        count++;
+      });
+
+      // Calculate average rating (if there are ratings)
+      const averageRating = count > 0 ? sum / count : 0;
+
+      // Format ratings to be between 1 and 5
+      const formattedRating = Math.min(5, Math.round(averageRating * 10) / 10);
+
+      // Prepare payload to send in response
+      const payload = {
+        ...getEvent.toObject(), // Convert Mongoose document to plain JavaScript object
+        rating: formattedRating, // Add formatted rating to the payload
+      };
+
+      console.log(">> payload: ", payload);
+      res.status(200).json(payload);
+    } catch (error) {
+      console.error("Error fetching event:", error);
+      res.status(400).json({ error: "Error fetching event" });
+    }
   }
 }
 
