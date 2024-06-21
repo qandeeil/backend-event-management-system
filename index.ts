@@ -10,6 +10,7 @@ var bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 import morgan from "morgan";
 import path from "path";
+import { startScheduler, stopScheduler } from "./src/common/scheduler";
 
 //For env File
 dotenv.config();
@@ -64,6 +65,24 @@ app.use("/event", eventRouter);
 app.use("/rating", ratingRouter);
 app.use("/favorites", favoritesRouter);
 
-app.listen(port, () => {
-  console.log(`Server is Fire at http://localhost:${port}`);
+startScheduler();
+
+const server = app.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}`);
+});
+
+process.on("SIGINT", () => {
+  stopScheduler();
+  server.close(() => {
+    console.log("Server closed");
+    process.exit(0);
+  });
+});
+
+process.on("SIGTERM", () => {
+  stopScheduler();
+  server.close(() => {
+    console.log("Server closed");
+    process.exit(0);
+  });
 });
