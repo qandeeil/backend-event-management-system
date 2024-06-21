@@ -179,6 +179,12 @@ class EventController {
       }
     }
   }
+
+  async getEventId(req: Request, res: Response): Promise<void> {
+    const getEvent = await this.eventService.getEventbyId(req.body._id);
+    res.status(200).json(getEvent);
+    return;
+  }
 }
 
 export default EventController;
