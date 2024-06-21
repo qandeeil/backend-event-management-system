@@ -184,6 +184,7 @@ class EventController {
 
   async getEventById(req: Request, res: Response): Promise<void> {
     try {
+      const userInfo = (req as any).user.user;
       const eventId: any = req.params._id;
 
       // Get event details by id
@@ -192,24 +193,62 @@ class EventController {
       // Get ratings for the event
       const ratings = await this.ratingService.getRatingEvents(eventId);
 
-      // Calculate ratings summary
+      // Get ratings for the user
+      const getRatingUser = await this.ratingService.getRatingUser({
+        event_id: getEvent._id,
+        user_id: userInfo._id,
+      });
+
+      // Initialize the ratings summary
       let sum: any = 0;
       let count: any = 0;
+      const categoriesOfEvaluations = {
+        one: 0,
+        two: 0,
+        three: 0,
+        four: 0,
+        five: 0,
+      };
+
+      // Calculate ratings summary
       ratings.forEach((rating) => {
         sum += rating.rate;
         count++;
+        // Count the number of each rating
+        switch (rating.rate) {
+          case 1:
+            categoriesOfEvaluations.one++;
+            break;
+          case 2:
+            categoriesOfEvaluations.two++;
+            break;
+          case 3:
+            categoriesOfEvaluations.three++;
+            break;
+          case 4:
+            categoriesOfEvaluations.four++;
+            break;
+          case 5:
+            categoriesOfEvaluations.five++;
+            break;
+          default:
+            break;
+        }
       });
 
       // Calculate average rating (if there are ratings)
       const averageRating = count > 0 ? sum / count : 0;
 
-      // Format ratings to be between 1 and 5
-      const formattedRating = Math.min(5, Math.round(averageRating * 10) / 10);
+      // Format ratings to be between 1 and 5 and round to nearest integer
+      const formattedRating = Math.min(5, Math.round(averageRating));
 
       // Prepare payload to send in response
       const payload = {
         ...getEvent.toObject(), // Convert Mongoose document to plain JavaScript object
         rating: formattedRating, // Add formatted rating to the payload
+        number_of_reviews: ratings.length,
+        categories_of_evaluations: categoriesOfEvaluations,
+        ratingUser: getRatingUser ? getRatingUser.rate : 0,
       };
 
       console.log(">> payload: ", payload);
