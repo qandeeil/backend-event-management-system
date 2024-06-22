@@ -4,6 +4,7 @@ import userRouter from "./src/user/userRoutes";
 import eventRouter from "./src/event/eventRoutes";
 import ratingRouter from "./src/rating/ratingRoutes";
 import favoritesRouter from "./src/favorites/favoritesRoutes";
+import reservationRoutes from "./src/reservation/reservationRoutes";
 import errorHandler from "./src/common/middleware/errorHandler";
 var cors = require("cors");
 var bodyParser = require("body-parser");
@@ -64,6 +65,7 @@ app.use("/user", userRouter);
 app.use("/event", eventRouter);
 app.use("/rating", ratingRouter);
 app.use("/favorites", favoritesRouter);
+app.use("/reservation", reservationRoutes);
 
 startScheduler();
 
