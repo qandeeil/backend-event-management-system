@@ -80,8 +80,8 @@ class EventController {
         }
       }
 
-      await this.eventService.createEvent(payload);
-      res.json({ created: true });
+      const newEvent = await this.eventService.createEvent(payload);
+      res.json({ result: true, _id: newEvent._id });
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error(error);
