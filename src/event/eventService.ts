@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import Event from "./eventModel";
 import { ICreateEvent } from "./interfaces";
 
@@ -27,7 +28,7 @@ class EventService {
       { $set: { expired: true } }
     );
   }
-  getEventbyId(_id: string) {
+  getEventbyId(_id: Types.ObjectId) {
     return Event.findById(_id).populate("organizers").populate("creator");
   }
 }

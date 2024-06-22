@@ -3,11 +3,13 @@ import EventService from "./eventService";
 import { ICreateEvent } from "./interfaces";
 import RatingService from "../rating/ratingService";
 import FavoritesService from "../favorites/favoritesService";
+import ReservationService from "../reservation/reservationService";
 
 class EventController {
   private eventService = new EventService();
   private ratingService = new RatingService();
   private favoritesService = new FavoritesService();
+  private reservationService = new ReservationService();
 
   async createEvent(req: Request, res: Response) {
     try {
@@ -120,7 +122,6 @@ class EventController {
     try {
       const userInfo = (req as any).user.user;
       const cleanedFilterData = this.cleanFilterData(req.body.filter);
-      console.log(">> cleanedFilterData : ", cleanedFilterData);
       const dataEvents = await this.eventService.getEvents(
         req.body.page,
         cleanedFilterData
@@ -128,6 +129,8 @@ class EventController {
 
       const event_ids: any = dataEvents.map((item) => item._id);
       const ratings = await this.ratingService.getRatingEvents(event_ids);
+      const dataReservation =
+        await this.reservationService.getReservationEvents(event_ids);
 
       const checkFavorites = await this.favoritesService.findToFavoriteEvents({
         event_id: event_ids,
@@ -148,6 +151,17 @@ class EventController {
         ratingsSummaryByEventId[eventId].count += 1;
       });
 
+      // Create a map to store the count of reservations by event_id
+      const bookedSeatsByEventId: { [key: string]: number } = {};
+
+      dataReservation.forEach((reservation) => {
+        const eventId = reservation.event_id.toString();
+        if (!bookedSeatsByEventId[eventId]) {
+          bookedSeatsByEventId[eventId] = 0;
+        }
+        bookedSeatsByEventId[eventId] += 1; // Each reservation represents one booked seat
+      });
+
       // Create a map to check if an event is in user's favorites
       const favoriteEventIds = new Set(
         checkFavorites.map((fav) => fav.event_id.toString())
@@ -165,11 +179,13 @@ class EventController {
           : 0;
 
         const isFavorite = favoriteEventIds.has(eventId);
+        const bookedSeats = bookedSeatsByEventId[eventId] || 0;
 
         return {
           ...event.toObject(), // Convert Mongoose document to plain JavaScript object
           rating: averageRating,
           isFavorite: isFavorite,
+          bookedSeats: bookedSeats,
         };
       });
 
@@ -198,6 +214,21 @@ class EventController {
         event_id: getEvent._id,
         user_id: userInfo._id,
       });
+
+      // Check reservation for the user
+      const getReservation = await this.reservationService.getReservationUser({
+        event_id: getEvent._id,
+        user_id: userInfo._id,
+      });
+
+      const getNumberReservation =
+        await this.reservationService.getReservationEvents(getEvent._id);
+
+      const event_origin =
+        getEvent.creator._id.toString() === userInfo._id.toString();
+
+      console.log(">> getEvent.creator._id ", getEvent.creator._id);
+      console.log(">> userInfo._id ", userInfo._id);
 
       // Initialize the ratings summary
       let sum: any = 0;
@@ -249,6 +280,9 @@ class EventController {
         number_of_reviews: ratings.length,
         categories_of_evaluations: categoriesOfEvaluations,
         ratingUser: getRatingUser ? getRatingUser.rate : 0,
+        event_origin: event_origin,
+        booked: getReservation ? true : false,
+        numberBooked: getNumberReservation.length || 0,
       };
 
       console.log(">> payload: ", payload);
