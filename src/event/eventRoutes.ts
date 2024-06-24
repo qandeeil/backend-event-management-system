@@ -26,4 +26,20 @@ router.get("/get-event/:_id", authorizeToken.authorize, (req, res) =>
   eventController.getEventById(req, res)
 );
 
+router.post(
+  "/update-event",
+  authorizeToken.authorize,
+  uploadFile.uploadImage().fields([
+    { name: "preview_photo", maxCount: 1 },
+    { name: "cover_photo", maxCount: 1 },
+  ]),
+  (req: Request, res: Response) => eventController.updateEvent(req, res)
+);
+
+router.delete(
+  "/delete-event/:_id",
+  authorizeToken.authorize,
+  (req: Request, res: Response) => eventController.deleteEvent(req, res)
+);
+
 export default router;
