@@ -402,6 +402,162 @@ class EventController {
       return;
     }
   }
+
+  async getFavoritesEvent(req: Request, res: Response): Promise<void> {
+    try {
+      const userInfo = (req as any).user.user;
+      const dataEvents = await this.favoritesService.getFavoritesEvent(
+        userInfo._id
+      );
+
+      const event_ids: any = dataEvents.map((item) => item._id);
+      const ratings = await this.ratingService.getRatingEvents(event_ids);
+      const dataReservation =
+        await this.reservationService.getReservationEvents(event_ids);
+
+      const checkFavorites = await this.favoritesService.findToFavoriteEvents({
+        event_id: event_ids,
+        user_id: userInfo._id,
+      });
+
+      // Create a map to store sum and count of ratings by event_id
+      const ratingsSummaryByEventId: {
+        [key: string]: { sum: any; count: number };
+      } = {};
+
+      ratings.forEach((rating) => {
+        const eventId = rating.event_id.toString();
+        if (!ratingsSummaryByEventId[eventId]) {
+          ratingsSummaryByEventId[eventId] = { sum: 0, count: 0 };
+        }
+        ratingsSummaryByEventId[eventId].sum += rating.rate;
+        ratingsSummaryByEventId[eventId].count += 1;
+      });
+
+      // Create a map to store the count of reservations by event_id
+      const bookedSeatsByEventId: { [key: string]: number } = {};
+
+      dataReservation.forEach((reservation) => {
+        const eventId = reservation.event_id.toString();
+        if (!bookedSeatsByEventId[eventId]) {
+          bookedSeatsByEventId[eventId] = 0;
+        }
+        bookedSeatsByEventId[eventId] += 1; // Each reservation represents one booked seat
+      });
+
+      // Create a map to check if an event is in user's favorites
+      const favoriteEventIds = new Set(
+        checkFavorites.map((fav) => fav.event_id.toString())
+      );
+
+      // Calculate average rating for each event and check if it's favorited
+      const eventsWithRatings = dataEvents.map((event: any) => {
+        const eventId = event._id.toString();
+        const ratingSummary = ratingsSummaryByEventId[eventId] || {
+          sum: 0,
+          count: 0,
+        };
+        const averageRating = ratingSummary.count
+          ? ratingSummary.sum / ratingSummary.count
+          : 0;
+
+        const isFavorite = favoriteEventIds.has(eventId);
+        const bookedSeats = bookedSeatsByEventId[eventId] || 0;
+
+        return {
+          ...event.toObject(), // Convert Mongoose document to plain JavaScript object
+          rating: averageRating,
+          isFavorite: isFavorite,
+          bookedSeats: bookedSeats,
+        };
+      });
+
+      res.status(200).send(eventsWithRatings);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error(error);
+        res.status(400).json(error.message);
+      }
+    }
+  }
+
+  async getReservationsEvent(req: Request, res: Response): Promise<void> {
+    try {
+      const userInfo = (req as any).user.user;
+      const dataEvents = await this.reservationService.getReservationsEvent(
+        userInfo._id
+      );
+
+      const event_ids: any = dataEvents.map((item) => item._id);
+      const ratings = await this.ratingService.getRatingEvents(event_ids);
+      const dataReservation =
+        await this.reservationService.getReservationEvents(event_ids);
+
+      const checkFavorites = await this.favoritesService.findToFavoriteEvents({
+        event_id: event_ids,
+        user_id: userInfo._id,
+      });
+
+      // Create a map to store sum and count of ratings by event_id
+      const ratingsSummaryByEventId: {
+        [key: string]: { sum: any; count: number };
+      } = {};
+
+      ratings.forEach((rating) => {
+        const eventId = rating.event_id.toString();
+        if (!ratingsSummaryByEventId[eventId]) {
+          ratingsSummaryByEventId[eventId] = { sum: 0, count: 0 };
+        }
+        ratingsSummaryByEventId[eventId].sum += rating.rate;
+        ratingsSummaryByEventId[eventId].count += 1;
+      });
+
+      // Create a map to store the count of reservations by event_id
+      const bookedSeatsByEventId: { [key: string]: number } = {};
+
+      dataReservation.forEach((reservation) => {
+        const eventId = reservation.event_id.toString();
+        if (!bookedSeatsByEventId[eventId]) {
+          bookedSeatsByEventId[eventId] = 0;
+        }
+        bookedSeatsByEventId[eventId] += 1; // Each reservation represents one booked seat
+      });
+
+      // Create a map to check if an event is in user's favorites
+      const favoriteEventIds = new Set(
+        checkFavorites.map((fav) => fav.event_id.toString())
+      );
+
+      // Calculate average rating for each event and check if it's favorited
+      const eventsWithRatings = dataEvents.map((event: any) => {
+        const eventId = event._id.toString();
+        const ratingSummary = ratingsSummaryByEventId[eventId] || {
+          sum: 0,
+          count: 0,
+        };
+        const averageRating = ratingSummary.count
+          ? ratingSummary.sum / ratingSummary.count
+          : 0;
+
+        const isFavorite = favoriteEventIds.has(eventId);
+        const bookedSeats = bookedSeatsByEventId[eventId] || 0;
+
+        return {
+          ...event.toObject(), // Convert Mongoose document to plain JavaScript object
+          rating: averageRating,
+          isFavorite: isFavorite,
+          bookedSeats: bookedSeats,
+        };
+      });
+
+      res.status(200).send(eventsWithRatings);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error(error);
+        res.status(400).json(error.message);
+      }
+    }
+  }
 }
 
 export default EventController;
