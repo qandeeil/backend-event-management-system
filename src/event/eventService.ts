@@ -31,6 +31,12 @@ class EventService {
   getEventbyId(_id: Types.ObjectId) {
     return Event.findById(_id).populate("organizers").populate("creator");
   }
+  updateEvent(_id: Types.ObjectId, event: ICreateEvent) {
+    return Event.findByIdAndUpdate(_id, event);
+  }
+  deleteEvent(_id: Types.ObjectId) {
+    return Event.findByIdAndDelete(_id);
+  }
 }
 
 export default EventService;
