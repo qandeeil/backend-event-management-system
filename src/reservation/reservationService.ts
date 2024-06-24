@@ -15,6 +15,9 @@ class ReservationService {
   getReservationUser(reservation: reservation) {
     return Reservation.findOne(reservation);
   }
+  deleteReservation(event_id: Types.ObjectId) {
+    return Reservation.deleteMany({ event_id });
+  }
 }
 
 export default ReservationService;

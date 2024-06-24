@@ -15,6 +15,9 @@ class RatingService {
   updateRating(rating: { _id: Types.ObjectId; rate: number }) {
     return ratingModel.findByIdAndUpdate(rating._id, { rate: rating.rate });
   }
+  deleteRating(event_id: Types.ObjectId) {
+    return ratingModel.deleteMany({ event_id });
+  }
 }
 
 export default RatingService;

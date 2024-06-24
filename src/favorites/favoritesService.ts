@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import favoritesSchema from "./favoritesModel";
 import { IFavorites } from "./interfaces";
 
@@ -16,6 +17,10 @@ class FavoritesService {
 
   removeToFavorite(favorite: IFavorites) {
     return favoritesSchema.findOneAndDelete(favorite);
+  }
+
+  deleteFavorite(event_id: Types.ObjectId) {
+    return favoritesSchema.deleteMany({ event_id: event_id });
   }
 }
 
