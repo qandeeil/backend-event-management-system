@@ -42,4 +42,12 @@ router.delete(
   (req: Request, res: Response) => eventController.deleteEvent(req, res)
 );
 
+router.get("/my-favorites", authorizeToken.authorize, (req, res) =>
+  eventController.getFavoritesEvent(req, res)
+);
+
+router.get("/my-reservations", authorizeToken.authorize, (req, res) =>
+  eventController.getReservationsEvent(req, res)
+);
+
 export default router;

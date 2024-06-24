@@ -18,6 +18,15 @@ class ReservationService {
   deleteReservation(event_id: Types.ObjectId) {
     return Reservation.deleteMany({ event_id });
   }
+  async getReservationsEvent(user_id: Types.ObjectId) {
+    const events = await Reservation.find({ user_id })
+      .populate("event_id")
+      .populate({
+        path: "event_id",
+        populate: "creator",
+      });
+    return events.map((item) => item.event_id);
+  }
 }
 
 export default ReservationService;

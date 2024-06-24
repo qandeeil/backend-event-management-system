@@ -22,6 +22,17 @@ class FavoritesService {
   deleteFavorite(event_id: Types.ObjectId) {
     return favoritesSchema.deleteMany({ event_id: event_id });
   }
+
+  async getFavoritesEvent(user_id: Types.ObjectId) {
+    const events = await favoritesSchema
+      .find({ user_id })
+      .populate("event_id")
+      .populate({
+        path: "event_id",
+        populate: "creator",
+      });
+    return events.map((item) => item.event_id);
+  }
 }
 
 export default FavoritesService;
