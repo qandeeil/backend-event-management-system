@@ -47,8 +47,8 @@ export interface ICreateEvent {
   seats: Number;
   price: Number;
   organizers: Types.ObjectId;
-  preview_photo: string | null;
-  cover_photo: string | null;
+  preview_photo: string | null | undefined;
+  cover_photo: string | null | undefined;
 }
 
 export interface IFilterEvent {
