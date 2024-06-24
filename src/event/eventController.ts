@@ -4,6 +4,7 @@ import { ICreateEvent } from "./interfaces";
 import RatingService from "../rating/ratingService";
 import FavoritesService from "../favorites/favoritesService";
 import ReservationService from "../reservation/reservationService";
+import { Types } from "mongoose";
 
 class EventController {
   private eventService = new EventService();
@@ -227,9 +228,6 @@ class EventController {
       const event_origin =
         getEvent.creator._id.toString() === userInfo._id.toString();
 
-      console.log(">> getEvent.creator._id ", getEvent.creator._id);
-      console.log(">> userInfo._id ", userInfo._id);
-
       // Initialize the ratings summary
       let sum: any = 0;
       let count: any = 0;
@@ -285,11 +283,123 @@ class EventController {
         numberBooked: getNumberReservation.length || 0,
       };
 
-      console.log(">> payload: ", payload);
       res.status(200).json(payload);
     } catch (error) {
       console.error("Error fetching event:", error);
       res.status(400).json({ error: "Error fetching event" });
+    }
+  }
+
+  async updateEvent(req: Request, res: Response): Promise<void> {
+    try {
+      const {
+        _id,
+        title,
+        description,
+        date,
+        location,
+        seats,
+        price,
+        organizers,
+      } = req.body;
+
+      console.log(organizers.split(","));
+
+      const userInfo = (req as any).user.user;
+      if (userInfo.account_type !== "business") {
+        throw new Error(
+          JSON.stringify({
+            created: false,
+            message:
+              "You do not have sufficient permissions to create an event",
+          })
+        );
+      }
+
+      let organizersArray: any;
+
+      if (typeof organizers === "string") {
+        try {
+          organizersArray = JSON.parse(organizers);
+          if (!Array.isArray(organizersArray)) {
+            throw new Error("Organizers should be an array");
+          }
+        } catch (e) {
+          console.error("Failed to parse organizers:", e);
+          organizersArray = [];
+        }
+      } else if (Array.isArray(organizers)) {
+        organizersArray = organizers;
+      } else {
+        console.error("Invalid format for organizers");
+        organizersArray = [];
+      }
+
+      const payload: ICreateEvent = {
+        title,
+        description,
+        date,
+        location,
+        seats,
+        price,
+        creator: userInfo._id,
+        organizers: organizersArray.map(
+          (organizer: { _id: Types.ObjectId }) => organizer._id
+        ),
+        preview_photo: null,
+        cover_photo: null,
+      };
+
+      if (req.files) {
+        const files = req.files as {
+          [fieldname: string]: Express.Multer.File[];
+        };
+
+        if (files.preview_photo && files.preview_photo[0]) {
+          payload.preview_photo = files.preview_photo[0].path;
+        } else {
+          delete payload.preview_photo;
+        }
+
+        if (files.cover_photo && files.cover_photo[0]) {
+          payload.cover_photo = files.cover_photo[0].path;
+        } else {
+          delete payload.cover_photo;
+        }
+      } else {
+        delete payload.preview_photo;
+        delete payload.cover_photo;
+      }
+
+      console.log(">> req.files: ", req.files);
+      console.log(">> payload: ", payload);
+
+      await this.eventService.updateEvent(_id, payload);
+      res.status(200).json({
+        result: true,
+        message: "The data has been updated successfully",
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(400).json(error);
+    }
+  }
+
+  async deleteEvent(req: Request, res: Response): Promise<void> {
+    try {
+      const _id: any = req.params._id;
+      await this.eventService.deleteEvent(_id);
+      await this.favoritesService.deleteFavorite(_id);
+      await this.ratingService.deleteRating(_id);
+      await this.reservationService.deleteReservation(_id);
+      res.status(200).json({
+        result: true,
+        message: "The event has been deleted successfully",
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(400).json(error);
+      return;
     }
   }
 }
